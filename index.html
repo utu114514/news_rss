@@ -3,15 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RSS フィルター</title>
-    <link rel="stylesheet" href="style.css">
+    <title>RSS Reader</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .tab { display: none; }
+        .active { display: block; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        th { background: #f4f4f4; }
+    </style>
 </head>
 <body>
-    <h1>RSS フィード選択</h1>
-    <div id="rss-list"></div>
-    <button id="save">保存</button>
-    <h2>フィード一覧</h2>
-    <div id="rss-container"></div>
-    <script src="script.js"></script>
+    <button onclick="openTab('MAIN')">MAIN</button>
+    <button onclick="openTab('SETTING')">SETTING</button>
+    
+    <div id="MAIN" class="tab active">
+        <h2>記事一覧</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>記事タイトル</th>
+                    <th>日付</th>
+                </tr>
+            </thead>
+            <tbody id="articles"></tbody>
+        </table>
+    </div>
+    
+    <div id="SETTING" class="tab">
+        <h2>RSS 設定</h2>
+        <div id="rss-settings"></div>
+    </div>
+    
+    <script>
+        let rssFeeds = [
+            "https://example.com/rss1.xml",
+            "https://example.com/rss2.xml"
+        ];
+        let articles = [];
+        let currentPage = 1;
+        const itemsPerPage = 10;
+
+        function openTab(tabId) {
+            $('.tab').removeClass('active');
+            $('#' + tabId).addClass('active');
+        }
+
+        function fetchRSS() {
+            articles = [];
+            let requests = rssFeeds.map(url => $.ajax({ url: "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(url), dataType: "json" }));
+            
+            $.when(...requests).done((...responses) => {
+                responses.forEach(response => {
+                    if (response[1] === 'success') {
+                        response[0].items.forEach(item => {
+                            articles.push({
+                                title: item.title,
+                                date: new Date(item.pubDate).toLocaleString('ja-JP', { month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric' })
+                            });
+                        });
+                    }
+                });
+                
+                articles.sort((a, b) => new Date(b.date) - new Date(a.date));
+                displayArticles();
+            });
+        }
+
+        function displayArticles() {
+            let startIndex = (currentPage - 1) * itemsPerPage;
+            let endIndex = startIndex + itemsPerPage;
+            let displayed = articles.slice(0, endIndex);
+            
+            $('#articles').html(displayed.map(article => `<tr><td>${article.title}</td><td>${article.date}</td></tr>`).join(''));
+        }
+
+        $(window).on('scroll', function() {
+            if ($(window).scrollTop() + $(window).height() >= $(document).height() - 10) {
+                currentPage++;
+                displayArticles();
+            }
+        });
+
+        fetchRSS();
+    </script>
 </body>
 </html>
