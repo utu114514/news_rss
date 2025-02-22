@@ -1,5 +1,6 @@
-[
-    { "name": "NHK News", "url": "https://www.nhk.or.jp/rss/news/cat0.xml" },
-    { "name": "BBC News", "url": "https://feeds.bbci.co.uk/news/rss.xml" },
-    { "name": "TechCrunch", "url": "https://feeds.feedburner.com/TechCrunch/" }
-]
+{
+    "feeds": [
+        { "name": "Yahooニュース", "url": "https://news.yahoo.co.jp/rss/topics/top-picks.xml" },
+        { "name": "NHKニュース", "url": "https://www.nhk.or.jp/rss/news/cat0.xml" }
+    ]
+}
