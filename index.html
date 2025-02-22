@@ -4,81 +4,37 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RSS Reader</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-gray-100 p-4">
-    <div class="max-w-4xl mx-auto bg-white p-4 shadow-lg rounded-lg">
-        <div class="flex border-b">
-            <button id="tab-main" class="px-4 py-2 bg-blue-500 text-white">MAIN</button>
-            <button id="tab-setting" class="px-4 py-2 bg-gray-300">SETTING</button>
-        </div>
-        <div id="main" class="p-4">
-            <table class="w-full border-collapse border border-gray-300">
-                <thead>
-                    <tr class="bg-gray-200">
-                        <th class="border p-2">タイトル</th>
-                        <th class="border p-2">日付</th>
-                        <th class="border p-2">ソース</th>
-                    </tr>
-                </thead>
-                <tbody id="rss-table"></tbody>
-            </table>
-        </div>
-        <div id="setting" class="p-4 hidden">
-            <label><input type="checkbox" id="yahoo" checked> Yahooニュース</label>
-            <label><input type="checkbox" id="nhk" checked> NHKニュース</label>
-            <button id="save-settings" class="mt-2 p-2 bg-green-500 text-white">保存</button>
-        </div>
+<body>
+    <div class="tabs">
+        <button class="tab-button active" data-tab="main">MAIN</button>
+        <button class="tab-button" data-tab="setting">SETTING</button>
     </div>
     
-    <script>
-        const feeds = {
-            yahoo: "https://news.yahoo.co.jp/rss/topics/top-picks.xml",
-            nhk: "https://www.nhk.or.jp/rss/news/cat0.xml"
-        };
-
-        function getSelectedFeeds() {
-            return document.cookie.split('; ').reduce((acc, item) => {
-                const [key, value] = item.split('=');
-                if (feeds[key] && value === 'true') acc.push(feeds[key]);
-                return acc;
-            }, []);
-        }
-
-        function saveSettings() {
-            document.cookie = `yahoo=${document.getElementById('yahoo').checked}`;
-            document.cookie = `nhk=${document.getElementById('nhk').checked}`;
-            loadRSS();
-        }
-
-        async function loadRSS() {
-            document.getElementById('rss-table').innerHTML = '';
-            const feedUrls = getSelectedFeeds();
-            for (const url of feedUrls) {
-                const response = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}`);
-                const data = await response.json();
-                data.items.forEach(item => {
-                    const row = `<tr><td class='border p-2'><a href='${item.link}' target='_blank'>${item.title}</a></td>
-                                 <td class='border p-2'>${new Date(item.pubDate).toLocaleString()}</td>
-                                 <td class='border p-2'>${data.feed.title}</td></tr>`;
-                    document.getElementById('rss-table').insertAdjacentHTML('beforeend', row);
-                });
-            }
-        }
-
-        document.getElementById('save-settings').addEventListener('click', saveSettings);
-
-        document.getElementById('tab-main').addEventListener('click', () => {
-            document.getElementById('main').classList.remove('hidden');
-            document.getElementById('setting').classList.add('hidden');
-        });
-
-        document.getElementById('tab-setting').addEventListener('click', () => {
-            document.getElementById('setting').classList.remove('hidden');
-            document.getElementById('main').classList.add('hidden');
-        });
-
-        loadRSS();
-    </script>
+    <div id="main" class="tab-content active">
+        <table>
+            <thead>
+                <tr>
+                    <th>記事タイトル</th>
+                    <th>日付</th>
+                    <th>サイト</th>
+                </tr>
+            </thead>
+            <tbody id="article-list">
+                <!-- 記事がここに追加される -->
+            </tbody>
+        </table>
+    </div>
+    
+    <div id="setting" class="tab-content">
+        <h2>RSS 設定</h2>
+        <div id="rss-list">
+            <!-- RSSリストがここに追加される -->
+        </div>
+        <button id="save-settings">保存</button>
+    </div>
+    
+    <script src="script.js"></script>
 </body>
 </html>
