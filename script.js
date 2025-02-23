@@ -39,6 +39,7 @@ document.addEventListener("DOMContentLoaded", () => {
             .map(input => input.value);
         document.cookie = `selectedFeeds=${JSON.stringify(selectedFeeds)}; path=/`;
         alert("設定を保存しました。");
+        fetchArticles();
     });
     
     // Cookieから選択したフィードを取得
@@ -53,18 +54,31 @@ document.addEventListener("DOMContentLoaded", () => {
         const feeds = getSavedFeeds();
         if (feeds.length === 0) return;
         
-        feeds.forEach(feedUrl => {
-            fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feedUrl)}`)
+        let allArticles = [];
+        let fetchPromises = feeds.map(feedUrl => {
+            return fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feedUrl)}`)
                 .then(response => response.json())
                 .then(data => {
                     data.items.forEach(item => {
-                        const row = document.createElement("tr");
-                        row.innerHTML = `<td><a href="${item.link}" target="_blank">${item.title}</a></td>
-                                         <td>${new Date(item.pubDate).toLocaleString("ja-JP", {month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit"})}</td>
-                                         <td>${data.feed.title}</td>`;
-                        articleList.appendChild(row);
+                        allArticles.push({
+                            title: item.title,
+                            link: item.link,
+                            date: new Date(item.pubDate),
+                            source: data.feed.title
+                        });
                     });
                 });
+        });
+        
+        Promise.all(fetchPromises).then(() => {
+            allArticles.sort((a, b) => b.date - a.date);
+            allArticles.forEach(article => {
+                const row = document.createElement("tr");
+                row.innerHTML = `<td><a href="${article.link}" target="_blank">${article.title}</a></td>
+                                 <td>${article.date.toLocaleString("ja-JP", {month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit"})}</td>
+                                 <td>${article.source}</td>`;
+                articleList.appendChild(row);
+            });
         });
     }
     
